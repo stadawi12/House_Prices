@@ -1,7 +1,13 @@
 import torch
+import yaml
 
 # maximum sale price value, used for scaling sale price back to original value
 MAX = 755000.00
+
+def Read_Input(input_path):
+    with open(input_path, 'r') as input_file:
+        input_data = yaml.load(input_file, Loader=yaml.FullLoader)
+    return input_data
 
 def get_accuracy(pred, target, maximum):
     """Calculates accuracy of prediction"""
@@ -29,7 +35,7 @@ def train(dataloader, model, loss_fn, optimiser, epoch):
         train_accuracy += get_accuracy(pred, y, MAX)
 
     train_loss /= num_batches
-    train_accuracy   /= num_batches
+    train_accuracy /= num_batches
     print(f"{epoch}. train loss: {train_loss:>7f}, train accuracy: ${train_accuracy:,.2f}")
     return train_loss, train_accuracy.detach().numpy()
 
