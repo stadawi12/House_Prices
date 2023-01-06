@@ -43,6 +43,14 @@ test_features = df_test
 # Concatenate train with test features into one data frame
 features = pd.concat([train_features, test_features]).reset_index(drop=True)
 
+# Drop columns with a lot of missing data ---------------------------
+
+# df_null_counts = features.isnull().sum()
+# print(df_null_counts[df_null_counts > 500])
+
+features.drop(['Alley', 'FireplaceQu','PoolQC','Fence','MiscFeature'],
+        axis=1, inplace=True)
+
 # Strings disguised as numbers --------------------------------------
 
 # Change these int columns to strings
@@ -82,7 +90,7 @@ fill_missing_values_median(features, 'GarageYrBlt')
 # do this by grouping the lot frontages according to neighbourhood and extracing the median
 features['LotFrontage'] = features.groupby('Neighborhood')['LotFrontage'].transform(lambda x: x.fillna(x.median()))
 
-print(features[numerical_columns].isnull().sum())
+# print(features[numerical_columns].isnull().sum())
 
 # Show histograms of all numerical data
 # features[numerical_columns].hist(bins=40)
@@ -95,11 +103,11 @@ final_features = pd.get_dummies(features).reset_index(drop=True)
 X = final_features.iloc[:len(df_train), :]
 Y = final_features.iloc[len(df_train):, :]
 
-print(X.shape, Y.shape)
+# print(X.shape, Y.shape)
 
 X['SalePrice'] = df_train['SalePrice'].to_list()
 
 X.to_csv("data/clean_train.csv")
 Y.to_csv("data/clean_test.csv")
 
-print(X.head())
+# print(X.head())

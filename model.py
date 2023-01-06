@@ -18,6 +18,8 @@ class LinearModel(nn.Module):
         x = self.activation(x)
         x = self.linear2(x)
         x = self.activation(x)
+        x = self.linear2(x)
+        x = self.activation(x)
         x = self.out(x)
         return x
 
