@@ -1,17 +1,15 @@
 import torch
 import yaml
 
-# maximum sale price value, used for scaling sale price back to original value
-MAX = 755000.00
-
 def Read_Input(input_path):
     with open(input_path, 'r') as input_file:
         input_data = yaml.load(input_file, Loader=yaml.FullLoader)
     return input_data
 
-def get_accuracy(pred, target, maximum):
+def get_accuracy(pred, target):
     """Calculates accuracy of prediction"""
-    return torch.mean((torch.abs(pred*maximum - target*maximum)))
+    difference = abs(pred - target)
+    return torch.mean(difference)
 
 def train(dataloader, model, loss_fn, optimiser, epoch):
     """training function"""
@@ -23,7 +21,7 @@ def train(dataloader, model, loss_fn, optimiser, epoch):
     for X, y in dataloader:
         # Compute prediction error
         pred = model(X)
-        # print(pred)
+        # print(pred[:5])
         loss = loss_fn(pred, y)
 
         # Backpropagation
@@ -32,11 +30,11 @@ def train(dataloader, model, loss_fn, optimiser, epoch):
         optimiser.step()
 
         train_loss += loss.item()
-        train_accuracy += get_accuracy(pred, y, MAX)
+        train_accuracy += get_accuracy(pred, y)
 
     train_loss /= num_batches
     train_accuracy /= num_batches
-    print(f"{epoch}. train loss: {train_loss:>7f}, train accuracy: ${train_accuracy:,.2f}")
+    print(f"{epoch}. train loss: {train_loss}, train accuracy: ${train_accuracy}")
     return train_loss, train_accuracy.detach().numpy()
 
 def test(dataloader, model, loss_fn, epoch):
@@ -52,7 +50,7 @@ def test(dataloader, model, loss_fn, epoch):
 
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
-            test_accuracy += get_accuracy(pred, y, MAX)
+            test_accuracy += get_accuracy(pred, y)
 
     test_loss /= num_batches
     test_accuracy /= num_batches

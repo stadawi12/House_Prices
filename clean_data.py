@@ -1,86 +1,105 @@
 import pandas as pd
 from typing import Any
 import matplotlib.pyplot as plt
-from utils import Read_Input
+import numpy as np
 
-input_data = Read_Input('inputs.yaml')
+# Helper functions ------------------------------------------------
 
-drop_lot_frontage = input_data['drop_lot_frontage']
-train_dropna      = input_data['train_dropna']
-test_dropna       = input_data['test_dropna']
+def fill_missing_values(df, column_name):
+    most_common_value = df[column_name].value_counts().idxmax()
+    df[column_name] = df[column_name].fillna(most_common_value)
 
-if __name__ == '__main__':
+def fill_missing_values_median(df, column_name):
+    median_value = df[column_name].median()
+    df[column_name] = df[column_name].fillna(median_value)
 
-    # Load data
-    df_train: Any = pd.read_csv('data/train.csv', index_col='Id')
-    df_test: Any = pd.read_csv('data/test.csv', index_col='Id')
-    df_test_labels: Any = pd.read_csv('data/sample_submission.csv', index_col='Id')
+# Load data -------------------------------------------------------
+df_train = pd.read_csv('data/train.csv', index_col='Id')
+df_test = pd.read_csv('data/test.csv', index_col='Id')
 
-    # Join test data with labels
-    df_test = df_test.join(df_test_labels, on='Id')
+# Dealing with outliers -------------------------------------------
 
-    # CLEANING TRAIN -------------------------------------------------------------------
+# Remove GrLivArea outliers
+df_train = df_train[df_train['GrLivArea'] < 4500]
+# Remove GarageYrBlt outliers
+df_train = df_train[df_train['GarageYrBlt'] < 2023]
 
-    # Turn categorical data into one hot encodings
-    df_train_dummies: Any = pd.get_dummies(data=df_train, dummy_na=True, dtype='float')
+# df_test['GarageYrBlt'].hist(bins=50)
+# plt.show()
+# 
+# print(df_train.shape)
 
-    # Drop LotFrontage column because 290 out of 1460 rows have missing values
-    if drop_lot_frontage:
-        df_train_dummies = df_train_dummies.drop(columns = ['LotFrontage'])
+# Dealing with skewed data -----------------------------------------
 
-    # Drop rows with missing values (89 rows dropped)
-    if train_dropna:
-        df_train_dummies = df_train_dummies.dropna()
+# SalePrice is skewed so transform it by the natural log function
+df_train['SalePrice'] = np.log1p(df_train['SalePrice'])
 
-    df_train_dummies[["SalePrice","LotFrontage"]].plot(
-            kind='scatter', 
-            x = ['SalePrice'],
-            y = ['LotFrontage','SalePrice'],
-            sharex=False,
-            sharey=False)
-    plt.show()
+# Preparing features
 
-    # vars = []
-    # for column in df_train_dummies.columns:
-    #     var = df_train_dummies[column].var()
-    #     if var == 0:
-    #         print(column)
-        
-        # vars.append(var)
-    # print(sorted(vars))
+# Extract features
+train_features = df_train.drop(['SalePrice'], axis=1)
+test_features = df_test
 
-    print(f"Raw train dataset shape: {df_train.shape}")
-    print(f"Cleaned train dataset shape: {df_train_dummies.shape}\n")
+# Concatenate train with test features into one data frame
+features = pd.concat([train_features, test_features]).reset_index(drop=True)
 
-    # CLEANING TEST ----------------------------------------------------------------------
+# Strings disguised as numbers --------------------------------------
 
-    df_test_dummies: Any = pd.get_dummies(data=df_test, dummy_na=True, dtype='float')
+# Change these int columns to strings
+features['MSSubClass'] = features['MSSubClass'].apply(str)
+features['YrSold'] = features['YrSold'].astype(str)
+features['MoSold'] = features['MoSold'].astype(str)
 
-    # Drop LotFrontage because more than 200 out of 1459 rows have missing values
-    if drop_lot_frontage:
-        df_test_dummies = df_test_dummies.drop(columns = ['LotFrontage'])
+# Dealing with nan values in categorical data -----------------------
 
-    # Drop rows with missing values (94 rows dropped)
-    if test_dropna:
-        df_test_dummies = df_test_dummies.dropna()
+# set all nan values to a category 'None'
+objects = []
+for i in features.columns:
+    if features[i].dtype == 'object':
+        objects.append(i)
+features.update(features[objects].fillna('None'))
 
-    print(f"Raw test dataset shape: {df_test.shape}")
-    print(f"Cleaned test dataset shape: {df_test_dummies.shape}\n")
+# Dealing with nan values in numerical data -----------------------
 
-    # Concatenate train and test data into one table
-    df = pd.concat([df_train_dummies, df_test_dummies], axis=0,
-                   keys=['train', 'test'])
-    print(f"Combined data shape: {df.shape}")
+# Get column names of columns with numerical data
+numerical_columns = features.dtypes[features.dtypes != 'object'].keys()
 
-    df = df.fillna(0)
+# Fill missing values with most common value
+fill_missing_values(features, 'MasVnrArea')
+fill_missing_values(features, 'BsmtFinSF1')
+fill_missing_values(features, 'BsmtFinSF2')
+fill_missing_values(features, 'BsmtUnfSF')
+fill_missing_values(features, 'TotalBsmtSF')
+fill_missing_values(features, 'BsmtFullBath')
+fill_missing_values(features, 'BsmtHalfBath')
+fill_missing_values(features, 'GarageCars')
+fill_missing_values(features, 'GarageArea')
 
-    print(df['SalePrice'].mean())
+# Fill missing values with median value
+fill_missing_values_median(features, 'GarageYrBlt')
 
-    # Normalise columns that have a larger max value than 1
-    for column in df.columns:
-        maximum = df[column].max()
-        if maximum > 1:
-            df[column] = df[column].div(maximum)
-            # print(column, df[column].max())
+# get rid of nans from lot frantage (400+ nans)
+# do this by grouping the lot frontages according to neighbourhood and extracing the median
+features['LotFrontage'] = features.groupby('Neighborhood')['LotFrontage'].transform(lambda x: x.fillna(x.median()))
 
-    df.to_csv('data/clean_data.csv')
+print(features[numerical_columns].isnull().sum())
+
+# Show histograms of all numerical data
+# features[numerical_columns].hist(bins=40)
+# plt.show()
+
+# Getting dummies ------------------------------------------------
+final_features = pd.get_dummies(features).reset_index(drop=True)
+
+# Divide the features back into train and test sets -------------
+X = final_features.iloc[:len(df_train), :]
+Y = final_features.iloc[len(df_train):, :]
+
+print(X.shape, Y.shape)
+
+X['SalePrice'] = df_train['SalePrice'].to_list()
+
+X.to_csv("data/clean_train.csv")
+Y.to_csv("data/clean_test.csv")
+
+print(X.head())

@@ -22,10 +22,24 @@ class LinearModel(nn.Module):
         return x
 
 if __name__ == '__main__':
+
+    import pandas as pd
+    from dataloader import HousePriceDataset
+    from torch.utils.data import DataLoader
+
+    df = pd.read_csv('data/clean_train.csv')
+    train = df.sample(frac=0.8, random_state=42)
+
+    train_set = HousePriceDataset(train)
+    train_dl = DataLoader(train_set, batch_size=10, num_workers=4)
+
+    X, y = next(iter(train_dl))
+
+    print(X)
+
+    print(X.shape)
     
-    x = torch.randn(1, 80)
+    model = LinearModel(X.shape[1])
 
-    model = LinearModel(x.shape[1])
-
-    out = model(x)
+    out = model(X)
     print(out)

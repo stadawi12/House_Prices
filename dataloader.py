@@ -5,18 +5,15 @@ import numpy as np
 
 class HousePriceDataset(Dataset):
 
-    def __init__(self, dataframe: pd.DataFrame, dataset: str):
+    def __init__(self, dataframe: pd.DataFrame):
         self.dataframe = dataframe
-        self.dataset = dataset
         
-        self.df = self.dataframe.loc[self.dataset]
-
     def __len__(self):
-        return len(self.df)
+        return len(self.dataframe)
 
     def __getitem__(self, idx):
-        df_X = self.df.drop(columns=["SalePrice"])
-        df_Y = self.df["SalePrice"]
+        df_X = self.dataframe.drop(columns=["SalePrice"])
+        df_Y = self.dataframe["SalePrice"]
 
         X = torch.from_numpy(df_X.iloc[idx].to_numpy().astype(np.float32))
         Y = torch.tensor([df_Y.iloc[idx]], dtype=torch.float)
@@ -25,16 +22,22 @@ class HousePriceDataset(Dataset):
 
 if __name__ == '__main__':
 
-    df = pd.read_csv('data/clean_data.csv', index_col=[0,1])
+    df = pd.read_csv('data/clean_train.csv', index_col=[0])
 
-    training_data = HousePriceDataset(df, 'train')
+    train = df.sample(frac=0.8, random_state=42)
+    test = df.drop(train.index)
+
+    training_data = HousePriceDataset(train)
+    testing_data = HousePriceDataset(test)
 
     dataloader_train = DataLoader(training_data, batch_size=64, num_workers=4)
+    dataloader_test = DataLoader(testing_data, batch_size=64, num_workers=4)
 
     X, y = next(iter(dataloader_train))
 
-    print(X.dtype)
-    print(y.dtype)
+    print(X[:5])
+    print(train.head())
+    print(torch.exp(y[:5]))
 
     print(X.shape)
     print(y.shape)
