@@ -6,7 +6,7 @@ class LinearModel(nn.Module):
     def __init__(self, input_size):
         super(LinearModel, self).__init__()
 
-        self.model_size = 40
+        self.model_size = 60
 
         self.linear1 = nn.Linear(input_size, self.model_size)
         self.linear2 = nn.Linear(self.model_size, self.model_size)
