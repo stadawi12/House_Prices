@@ -1,15 +1,14 @@
+""" Here we train the model """
+import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
+from torch.utils.data import DataLoader
 
 from dataloader import HousePriceDataset
 from model import LinearModel
 from utils import test, train
-
-from sklearn.model_selection import train_test_split
 
 df = pd.read_csv('data/clean_train.csv', index_col=[0])
 
