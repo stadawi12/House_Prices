@@ -1,5 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 
 # Helper functions ------------------------------------------------
@@ -91,14 +90,12 @@ fill_missing_values_median(features, 'GarageYrBlt')
 # use the median lot of the neighbourhood to fill the missing value
 features['LotFrontage'] = features.groupby('Neighborhood')['LotFrontage'].transform(lambda x: x.fillna(x.median()))
 
-print(features.groupby('Neighborhood')['LotFrontage'].median())
-
 # print(features[numerical_columns].isnull().sum())
 
 # SalePrice is skewed so transform it by the natural log function
-features['LotFrontage'] = np.log1p(features['LotFrontage'])
-features['1stFlrSF'] = np.log1p(features['1stFlrSF'])
-features['GrLivArea'] = np.log1p(features['GrLivArea'])
+# features['LotFrontage'] = np.log1p(features['LotFrontage'])
+# features['1stFlrSF'] = np.log1p(features['1stFlrSF'])
+# features['GrLivArea'] = np.log1p(features['GrLivArea'])
 
 # Show histograms of all numerical data
 # features[numerical_columns].hist(bins=40)
@@ -117,5 +114,3 @@ X['SalePrice'] = df_train['SalePrice'].to_list()
 
 X.to_csv("data/clean_train.csv")
 Y.to_csv("data/clean_test.csv")
-
-# print(X.head())

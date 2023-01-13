@@ -10,9 +10,13 @@ from dataloader import HousePriceDataset
 from model import LinearModel
 from utils import test, train
 
+EPOCHS = 100
+LR = 0.01
+SPLIT = 0.9
+
 df = pd.read_csv('data/clean_train.csv', index_col=[0])
 
-df_train = df.sample(frac=0.8, random_state=42)
+df_train = df.sample(frac=SPLIT, random_state=42)
 df_test = df.drop(df_train.index)
 
 training_data = HousePriceDataset(df_train)
@@ -24,7 +28,7 @@ test_dataloader = DataLoader(testing_data, batch_size = 64, shuffle=True)
 model = LinearModel(len(df_train.columns)-1)
 
 loss_fn = nn.MSELoss()
-optimiser = torch.optim.Adam(model.parameters(), lr=0.01)
+optimiser = torch.optim.Adam(model.parameters(), lr=LR)
 scheduler = StepLR(optimiser, step_size=10, gamma=0.9)
 
 analytics = {"train_loss": [],
@@ -34,7 +38,6 @@ analytics = {"train_loss": [],
              "epochs": [] 
             }
 
-EPOCHS = 100
 for epoch in range(1, EPOCHS + 1):
 
     print(scheduler.get_last_lr())
@@ -68,5 +71,7 @@ ax[1].legend()
 # set titles
 ax[0].set_title('Loss curves')
 ax[1].set_title('Accuracy curves')
+
+plt.savefig('images/acc_loss_curves.pdf', format='pdf')
 
 plt.show()
