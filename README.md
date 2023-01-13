@@ -1,4 +1,4 @@
-# Machine Learning Project from Kaggle - House Price Data
+# House Price Prediction
 
 In this project, I will be using machine learning techniques to
 predict house prices based on a Kaggle 

@@ -1,15 +1,16 @@
 import pandas as pd
-from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Helper functions ------------------------------------------------
 
 def fill_missing_values(df, column_name):
+    " Fills missing values with the most common value "
     most_common_value = df[column_name].value_counts().idxmax()
     df[column_name] = df[column_name].fillna(most_common_value)
 
 def fill_missing_values_median(df, column_name):
+    " Fills missing values with the median value "
     median_value = df[column_name].median()
     df[column_name] = df[column_name].fillna(median_value)
 
@@ -43,6 +44,9 @@ test_features = df_test
 # Concatenate train with test features into one data frame
 features = pd.concat([train_features, test_features]).reset_index(drop=True)
 
+# Get column names of columns with numerical data
+numerical_columns = features.dtypes[features.dtypes != 'object'].keys()
+
 # Drop columns with a lot of missing data ---------------------------
 
 # df_null_counts = features.isnull().sum()
@@ -69,9 +73,6 @@ features.update(features[objects].fillna('None'))
 
 # Dealing with nan values in numerical data -----------------------
 
-# Get column names of columns with numerical data
-numerical_columns = features.dtypes[features.dtypes != 'object'].keys()
-
 # Fill missing values with most common value
 fill_missing_values(features, 'MasVnrArea')
 fill_missing_values(features, 'BsmtFinSF1')
@@ -86,11 +87,18 @@ fill_missing_values(features, 'GarageArea')
 # Fill missing values with median value
 fill_missing_values_median(features, 'GarageYrBlt')
 
-# get rid of nans from lot frantage (400+ nans)
-# do this by grouping the lot frontages according to neighbourhood and extracing the median
+# transform nans in lot frantage (400+ nans)
+# use the median lot of the neighbourhood to fill the missing value
 features['LotFrontage'] = features.groupby('Neighborhood')['LotFrontage'].transform(lambda x: x.fillna(x.median()))
 
+print(features.groupby('Neighborhood')['LotFrontage'].median())
+
 # print(features[numerical_columns].isnull().sum())
+
+# SalePrice is skewed so transform it by the natural log function
+features['LotFrontage'] = np.log1p(features['LotFrontage'])
+features['1stFlrSF'] = np.log1p(features['1stFlrSF'])
+features['GrLivArea'] = np.log1p(features['GrLivArea'])
 
 # Show histograms of all numerical data
 # features[numerical_columns].hist(bins=40)

@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import StepLR
 
 from dataloader import HousePriceDataset
 from model import LinearModel
@@ -25,6 +26,7 @@ model = LinearModel(len(df_train.columns)-1)
 
 loss_fn = nn.MSELoss()
 optimiser = torch.optim.Adam(model.parameters(), lr=0.01)
+scheduler = StepLR(optimiser, step_size=10, gamma=0.9)
 
 analytics = {"train_loss": [],
              "train_acc": [],
@@ -36,8 +38,10 @@ analytics = {"train_loss": [],
 EPOCHS = 100
 for epoch in range(1, EPOCHS + 1):
 
+    print(scheduler.get_last_lr())
     train_loss, train_acc = train(train_dataloader, model, loss_fn, optimiser, epoch)
     test_loss, test_acc = test(test_dataloader, model, loss_fn, epoch)
+    scheduler.step()
 
     if epoch > 1:
 
