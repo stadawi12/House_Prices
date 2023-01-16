@@ -6,17 +6,19 @@ class LinearModel(nn.Module):
     def __init__(self, input_size):
         super(LinearModel, self).__init__()
 
-        self.model_size = 60
+        self.model_size = 300
 
         self.linear1 = nn.Linear(input_size, self.model_size)
         self.linear2 = nn.Linear(self.model_size, self.model_size)
         self.activation = nn.ReLU()
         self.out = nn.Linear(self.model_size, 1)
-        self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, x):
 
         x = self.linear1(x)
+        x = self.activation(x)
+
+        x = self.linear2(x)
         x = self.activation(x)
 
         x = self.linear2(x)

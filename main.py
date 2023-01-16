@@ -10,14 +10,18 @@ from dataloader import HousePriceDataset
 from model import LinearModel
 from utils import test, train
 
+torch.manual_seed(42)
+
 EPOCHS = 100
 LR = 0.01
 SPLIT = 0.9
+DECAY=0.6
 
 df = pd.read_csv('data/clean_train.csv', index_col=[0])
 
 df_train = df.sample(frac=SPLIT, random_state=42)
 df_test = df.drop(df_train.index)
+print(f"train set shape: {df_train.shape}, test set shape: {df_test.shape}")
 
 training_data = HousePriceDataset(df_train)
 testing_data = HousePriceDataset(df_test)
@@ -29,7 +33,7 @@ model = LinearModel(len(df_train.columns)-1)
 
 loss_fn = nn.MSELoss()
 optimiser = torch.optim.Adam(model.parameters(), lr=LR)
-scheduler = StepLR(optimiser, step_size=10, gamma=0.9)
+scheduler = StepLR(optimiser, step_size=10, gamma=DECAY)
 
 analytics = {"train_loss": [],
              "train_acc": [],
