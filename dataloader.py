@@ -1,26 +1,28 @@
-import pandas as pd
-from torch.utils.data import Dataset, DataLoader
-import torch
 import numpy as np
+import pandas as pd
+import torch
+from torch import Tensor
+from torch.utils.data import Dataset
 
 class HousePriceDataset(Dataset):
 
     def __init__(self, dataframe: pd.DataFrame):
-        self.dataframe = dataframe
+        self.dataframe : pd.DataFrame = dataframe
         
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.dataframe)
 
-    def __getitem__(self, idx):
-        df_X = self.dataframe.drop(columns=["SalePrice"])
-        df_Y = self.dataframe["SalePrice"]
+    def __getitem__(self, idx: int) -> tuple[Tensor, Tensor]:
+        df_features : pd.DataFrame = self.dataframe.drop(columns=["SalePrice"])
+        df_labels   : pd.DataFrame = self.dataframe["SalePrice"]
 
-        X = torch.from_numpy(df_X.iloc[idx].to_numpy().astype(np.float32))
-        Y = torch.tensor([df_Y.iloc[idx]], dtype=torch.float)
+        features : Tensor = torch.from_numpy(df_features.iloc[idx].to_numpy().astype(np.float32))
+        labels   : Tensor = torch.tensor([df_labels.iloc[idx]], dtype=torch.float)
 
-        return X, Y
+        return features, labels
 
 if __name__ == '__main__':
+    from torch.utils.data import DataLoader
 
     df = pd.read_csv('data/clean_train.csv', index_col=[0])
 
