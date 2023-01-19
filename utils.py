@@ -21,4 +21,4 @@ if __name__ == '__main__':
                            [0.25],
                            [1]])
 
-    print(get_accuracy(pred, target, max))
+    print(get_accuracy(pred, target))
