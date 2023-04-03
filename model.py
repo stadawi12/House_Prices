@@ -19,7 +19,7 @@ BATCH_SIZE      : int = 32
 N_EPOCHS        : int = 100
 
 # Train and test data
-All_data : pd.DataFrame = pd.read_csv('data/clean_train.csv', index_col=[0])
+All_data : pd.DataFrame = pd.read_csv('data/processed/train.csv', index_col=[0])
 Train    : pd.DataFrame = All_data.sample(frac=DATA_SPLIT, random_state=42)
 Valid    : pd.DataFrame = All_data.drop(Train.index)
 
