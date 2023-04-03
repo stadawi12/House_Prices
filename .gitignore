@@ -4,3 +4,4 @@ saved_models
 lightning_logs
 data/*
 !data/raw
+clean_data.py
