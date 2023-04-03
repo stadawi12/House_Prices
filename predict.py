@@ -3,7 +3,7 @@ from model import LinearModel
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('data/clean_test.csv', index_col=[0])
+df = pd.read_csv('data/processed/test.csv', index_col=[0])
 
 X = torch.from_numpy(df.to_numpy().astype(np.float32))
 
