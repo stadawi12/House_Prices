@@ -105,9 +105,13 @@ if __name__ == '__main__':
                                  TQDMProgressBar(process_position=2)],
                       max_epochs=N_EPOCHS,
                       log_every_n_steps=10,
-                      fast_dev_run=False
+                      fast_dev_run=False,
+                      min_epochs=50
                       )
     input_size: int = Train.shape[1] - 1
     print(input_size)
     model = LinearModel(input_size, HIDDEN_SIZE, N_HIDDEN_LAYERS)
     trainer.fit(model)
+
+    # print("Generating Prediction ...")
+    # generate_prediction(model, test_data)
