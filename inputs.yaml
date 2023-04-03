@@ -1,8 +1,0 @@
-# General
-drop_lot_frontage: False
-
-# Train
-train_dropna: False
-
-# Test
-test_dropna: False

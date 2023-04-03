@@ -5,13 +5,15 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
 from transformers import get_linear_schedule_with_warmup
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import TQDMProgressBar
 
 from dataloader import HousePriceDataset
 
 # Hyper-parameters
 HIDDEN_SIZE     : int = 300
 N_HIDDEN_LAYERS : int = 2
-DATA_SPLIT      : float = 0.9
+DATA_SPLIT      : float = 0.8
 LEARNING_RATE   : float = 0.01
 BATCH_SIZE      : int = 32
 N_EPOCHS        : int = 100
@@ -41,6 +43,7 @@ class LinearModel(pl.LightningModule):
     """ Pytorch lighning model """
     def __init__(self, input_size: int, hidden_size: int, n_hidden_layers: int):
         super(LinearModel, self).__init__()
+        self.save_hyperparameters()
         self.input_size      : int = input_size
         self.hidden_size     : int = hidden_size
         self.n_hidden_layers : int = n_hidden_layers
@@ -58,7 +61,7 @@ class LinearModel(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        optimizer = Adam(self.parameters(), lr=LEARNING_RATE)
+        optimizer = Adam(self.parameters(), lr=LEARNING_RATE, weight_decay=0.1)
 
         scheduler = get_linear_schedule_with_warmup(
                 optimizer,
@@ -72,9 +75,6 @@ class LinearModel(pl.LightningModule):
                     interval='step'
                     )
                 )
-
-    # def configure_optimizers(self):
-        # return Adam(self.parameters(), lr=LEARNING_RATE)
 
     def training_step(self, batch, batch_idx):
         features, labels = batch
@@ -101,8 +101,10 @@ class LinearModel(pl.LightningModule):
         return loader
 
 if __name__ == '__main__':
-    trainer = Trainer(max_epochs=N_EPOCHS,
-                      log_every_n_steps=5,
+    trainer = Trainer(callbacks=[EarlyStopping(monitor='valid_loss', mode='min', patience=10),
+                                 TQDMProgressBar(process_position=2)],
+                      max_epochs=N_EPOCHS,
+                      log_every_n_steps=10,
                       fast_dev_run=False
                       )
     input_size: int = Train.shape[1] - 1

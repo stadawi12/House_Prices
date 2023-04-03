@@ -14,10 +14,10 @@ class HousePriceDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[Tensor, Tensor]:
         df_features : pd.DataFrame = self.dataframe.drop(columns=["SalePrice"])
-        df_labels   : pd.DataFrame = self.dataframe["SalePrice"]
+        df_labels : pd.DataFrame   = self.dataframe["SalePrice"]
 
         features : Tensor = torch.from_numpy(df_features.iloc[idx].to_numpy().astype(np.float32))
-        labels   : Tensor = torch.tensor([df_labels.iloc[idx]], dtype=torch.float)
+        labels : Tensor   = torch.tensor([df_labels.iloc[idx]], dtype=torch.float)
 
         return features, labels
 
