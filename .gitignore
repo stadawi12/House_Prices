@@ -2,5 +2,5 @@
 *.pt
 saved_models
 lightning_logs
-data/
+data/*
 !data/raw
